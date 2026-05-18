@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@variant dark (&:is(.dark *));
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #111111;
+  color: #F5F4F2;
+}
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+
+  /* Paleta principal */
+  --color-wine:       #7B1C2E;
+  --color-wine-soft:  #F4E6E8;
+  --color-gold:       #C9973A;
+  --color-gold-soft:  #FBF3DF;
+  --color-green:      #206A4F;
+  --color-tinta:      #1F2D5C;
+  --color-brand-black:#0F0F0F;
+  --color-brand-gray: #F5F4F2;
+
+  /* Alias legacy (mantener compatibilidad) */
+  --color-wine-50:    #f9f0f2;
+  --color-wine-100:   #f0d0d6;
+  --color-wine-600:   #7B1C2E;
+  --color-wine-800:   #4a101b;
+  --color-wine-900:   #2d0a10;
+  --color-gold-400:   #C9973A;
+  --color-gold-600:   #9a7020;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background-color: #F5F4F2;
+  color: #0F0F0F;
+}
+
+/* Patrón de placeholder rayado */
+.placeholder-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    #e8d8da 0px,
+    #e8d8da 1px,
+    transparent 1px,
+    transparent 8px
+  );
+  background-color: #f4e6e8;
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.placeholder-pattern-dark {
+  background-image: repeating-linear-gradient(
+    45deg,
+    #3a2030 0px,
+    #3a2030 1px,
+    transparent 1px,
+    transparent 8px
+  );
+  background-color: #2a1520;
+}
