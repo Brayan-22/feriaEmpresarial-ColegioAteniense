@@ -67,7 +67,7 @@ jobs:
         run: uv run ruff check . --exit-zero
 
       - name: Configurar credenciales AWS
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -75,12 +75,12 @@ jobs:
           aws-region:            ${{ env.AWS_REGION }}
 
       - name: Login en Amazon ECR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, tag y push de imagen Docker a ECR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -91,7 +91,7 @@ jobs:
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Descargar task definition actual
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         run: |
           aws ecs describe-task-definition \
             --task-definition ${{ env.TASK_DEFINITION_FAMILY }} \
@@ -100,7 +100,7 @@ jobs:
             > /tmp/task-definition.json
 
       - name: Actualizar imagen en task definition
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
@@ -109,7 +109,7 @@ jobs:
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy en ECS
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
@@ -118,7 +118,7 @@ jobs:
           wait-for-service-stability: true
 
       - name: URL del deploy
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         run: echo "✅ Backend desplegado → https://apiemprendeateniense.bacode.online"
 
   # ════════════════════════════════════════════════════════════
@@ -128,7 +128,7 @@ jobs:
     name: Frontend · Build + Deploy S3
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.frontend == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: needs.changes.outputs.frontend == 'true' && github.ref == 'refs/heads/master'
     defaults:
       run:
         working-directory: feria-frontend
