@@ -25,7 +25,7 @@ export function useCategories() {
         })
     }
 
-    pending.then((data) => {
+    pending!.then((data) => {
       setCategories(data)
       setLoading(false)
     })

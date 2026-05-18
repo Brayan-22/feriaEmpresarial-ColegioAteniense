@@ -89,7 +89,7 @@ export default function Scan() {
               {product.image_url ? (
                 <img src={product.image_url} alt={product.name} className="w-full h-52 object-cover" />
               ) : (
-                <ImagePlaceholder label={product.name} className="w-full h-52" />
+                <ImagePlaceholder className="w-full h-52" />
               )}
               <div className="p-5">
                 <p className="font-bold text-xl mb-1">{product.name}</p>
