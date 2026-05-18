@@ -10,7 +10,6 @@ Globals:
     Environment:
       Variables:
         ENVIRONMENT: production
-        AWS_DEFAULT_REGION: !Ref AWS::Region
 
 Resources:
   # ── Rol IAM para Lambda ──────────────────────────────────────
