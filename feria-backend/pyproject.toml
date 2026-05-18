@@ -8,7 +8,6 @@ dependencies = [
     "alembic>=1.13.0",
     "boto3>=1.43.9",
     "fastapi>=0.136.1",
-    "mangum>=0.21.0",
     "passlib>=1.7.4",
     "pillow>=12.2.0",
     "psycopg2-binary>=2.9.12",
@@ -22,6 +21,7 @@ dependencies = [
     "uliweb-alembic>=0.6.9",
     "fastapi-filter>=2.0.1",
     "boto3-stubs~=1.43.9",
+    "uvicorn>=0.47.0",
 ]
 
 [dependency-groups]

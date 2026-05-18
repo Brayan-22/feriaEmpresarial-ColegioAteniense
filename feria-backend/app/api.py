@@ -74,5 +74,7 @@ def create_app() -> FastAPI:
     @app.get("/")
     def read_root():
         return {"message": "Welcome to Feria Empresarial Ateniense Backend"}
-
+    @app.get("/health")
+    def health_check():
+        return {"status": "ok"}
     return app

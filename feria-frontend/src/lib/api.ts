@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
 import { toast } from '../store/toastStore'
 
-const BASE_URL = import.meta.env.VITE_API_URL as string
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 export const api = axios.create({
   baseURL: BASE_URL,
