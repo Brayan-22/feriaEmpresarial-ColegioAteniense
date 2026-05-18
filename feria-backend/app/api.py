@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,24 +26,16 @@ from app.db.database import SessionLocal
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Manejador de ciclo de vida de la aplicación.
-    El código antes de 'yield' se ejecuta al startup.
-    El código después de 'yield' se ejecuta al shutdown.
-    """
-    # Startup
     db = SessionLocal()
     try:
-        init_roles(db)
-        init_admin_user(db)
-        init_categories(db)
+        # Solo inicializa en desarrollo
+        if os.getenv("ENVIRONMENT") != "production":
+            init_roles(db)
+            init_admin_user(db)
+            init_categories(db)
     finally:
         db.close()
-
     yield
-
-    # Shutdown (si necesitas limpiar recursos aquí)
-    pass
 
 
 def create_app() -> FastAPI:
