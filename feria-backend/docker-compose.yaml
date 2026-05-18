@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: feriaempresarial
+      POSTGRES_PASSWORD: feriaempresarial
+      POSTGRES_DB: feriaempresarial
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql
+volumes:
+  db_data:
