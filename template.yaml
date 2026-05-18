@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: FeriaEmpresarial Ateniense — Backend FastAPI en AWS Lambda
+
+Globals:
+  Function:
+    Timeout: 29
+    MemorySize: 512
+    Runtime: python3.12
+    Environment:
+      Variables:
+        ENVIRONMENT: production
+        AWS_DEFAULT_REGION: !Ref AWS::Region
+
+Resources:
+  # ── Rol IAM para Lambda ──────────────────────────────────────
+  FeriaEscolarRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: feriaescolar-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+      Policies:
+        - PolicyName: feriaescolar-secrets-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:feriaescolar/*"
+        - PolicyName: feriaescolar-s3-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - arn:aws:s3:::feriaescolar-images
+                  - arn:aws:s3:::feriaescolar-images/*
+
+  # ── Función Lambda ───────────────────────────────────────────
+  FeriaEscolarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: feriaescolar-backend
+      CodeUri: feria-backend/
+      Handler: app.main.handler
+      Role: !GetAtt FeriaEscolarRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0b33edfaa5f6e63df
+        SubnetIds:
+          - subnet-0b8a856cf54fcbdf9
+          - subnet-0cfcbf947bb621469
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref FeriaEscolarApi
+
+  # ── API Gateway HTTP ─────────────────────────────────────────
+  FeriaEscolarApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      CorsConfiguration:
+        AllowOrigins:
+          - https://emprendeateniense.bacode.online
+          - http://localhost:3000
+          - http://localhost:5173
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - Authorization
+          - Content-Type
+        MaxAge: 600
+
+  # ── Log Group CloudWatch ─────────────────────────────────────
+  FeriaEscolarLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/feriaescolar-backend
+      RetentionInDays: 30
+
+Outputs:
+  ApiUrl:
+    Description: URL del API Gateway
+    Value: !Sub "https://${FeriaEscolarApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+    Export:
+      Name: FeriaEscolarApiUrl
+
+  FunctionArn:
+    Description: ARN de la función Lambda
+    Value: !GetAtt FeriaEscolarFunction.Arn

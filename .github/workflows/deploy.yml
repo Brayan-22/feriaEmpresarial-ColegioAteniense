@@ -1,0 +1,146 @@
+name: Deploy FeriaEmpresarial Ateniense
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ════════════════════════════════════════════════════════════
+  #  BACKEND — Test + SAM Build + SAM Deploy
+  # ════════════════════════════════════════════════════════════
+  deploy-backend:
+    name: Backend · Test + Deploy Lambda
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: feria-backend
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Instalar Python 3.12
+        run: uv python install 3.12
+
+      - name: Instalar dependencias
+        run: uv sync --frozen
+
+      - name: Lint con ruff
+        run: uv run ruff check .
+        continue-on-error: true  # no bloquea el deploy por lint
+
+      - name: Tests
+        run: uv run pytest --tb=short -q
+        continue-on-error: true  # cambia a false cuando tengas tests
+
+      # Solo hace deploy en push a master, no en PRs
+      - name: Configurar credenciales AWS
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            us-east-1
+
+      - name: Instalar SAM CLI
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Crear requirements.txt desde uv (SAM lo necesita)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: uv export --no-hashes --format requirements-txt > requirements.txt
+
+      - name: SAM Build
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        working-directory: .   # raíz del repo donde está template.yaml
+        run: sam build --config-file samconfig.toml
+
+      - name: Crear bucket de artefactos SAM si no existe
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          aws s3api head-bucket --bucket feriaescolar-sam-artifacts 2>/dev/null || \
+          aws s3api create-bucket \
+            --bucket feriaescolar-sam-artifacts \
+            --region us-east-1
+
+      - name: SAM Deploy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        working-directory: .
+        run: |
+          sam deploy \
+            --config-file samconfig.toml \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset
+
+  # ════════════════════════════════════════════════════════════
+  #  FRONTEND — Build + S3 + CloudFront invalidation
+  # ════════════════════════════════════════════════════════════
+  deploy-frontend:
+    name: Frontend · Build + Deploy S3
+    runs-on: ubuntu-latest
+    needs: deploy-backend   # espera que el backend esté listo
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    defaults:
+      run:
+        working-directory: feria-frontend
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Instalar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: feria-frontend/pnpm-lock.yaml
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Build producción
+        run: pnpm build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            us-east-1
+
+      - name: Subir build a S3
+        run: |
+          # Archivos con hash en el nombre → caché larga (1 año)
+          aws s3 sync dist/ s3://${{ secrets.S3_FRONTEND_BUCKET }} \
+            --delete \
+            --exclude "index.html" \
+            --cache-control "public,max-age=31536000,immutable"
+
+          # index.html → sin caché (siempre la versión más reciente)
+          aws s3 cp dist/index.html s3://${{ secrets.S3_FRONTEND_BUCKET }}/index.html \
+            --cache-control "no-cache,no-store,must-revalidate"
+
+      - name: Invalidar caché CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: URL del deploy
+        run: echo "✅ Deploy completado → https://emprendeateniense.bacode.online"
