@@ -25,7 +25,7 @@ Resources:
               Service: lambda.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
       Policies:
         - PolicyName: feriaescolar-secrets-policy
@@ -59,12 +59,6 @@ Resources:
       CodeUri: feria-backend/
       Handler: app.main.handler
       Role: !GetAtt FeriaEscolarRole.Arn
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-0b33edfaa5f6e63df
-        SubnetIds:
-          - subnet-0b8a856cf54fcbdf9
-          - subnet-0cfcbf947bb621469
       Events:
         ApiEvent:
           Type: HttpApi
