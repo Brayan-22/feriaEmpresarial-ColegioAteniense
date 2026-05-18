@@ -100,6 +100,7 @@ jobs:
           aws ecs describe-task-definition \
             --task-definition ${{ env.TASK_DEFINITION_FAMILY }} \
             --query taskDefinition \
+            | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy, .enableFaultInjection)' \
             > /tmp/task-definition.json
 
       - name: Actualizar imagen en task definition
