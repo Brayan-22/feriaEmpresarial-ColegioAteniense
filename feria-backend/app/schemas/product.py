@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
 from decimal import Decimal
 
@@ -35,6 +35,16 @@ class ProductResponse(BaseModel):
     category: Optional["CategoryResponse"] = None
 
     model_config = {"from_attributes": True}
+
+    @model_validator(mode='after')
+    def resolve_image_url(self):
+        if self.image_url and not self.image_url.startswith('http'):
+            from app.services.s3_service import S3Service
+            try:
+                self.image_url = S3Service.get_presigned_url(self.image_url)
+            except Exception:
+                pass
+        return self
 
 
 class ImageUpload(BaseModel):

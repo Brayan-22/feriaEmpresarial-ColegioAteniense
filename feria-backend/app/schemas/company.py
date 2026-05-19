@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Optional, List
 from decimal import Decimal
 from app.schemas.product import ProductResponse
@@ -29,6 +29,16 @@ class CompanyResponse(BaseModel):
     categories: list["CategoryResponse"] = []
 
     model_config = {"from_attributes": True}
+
+    @model_validator(mode='after')
+    def resolve_logo_url(self):
+        if self.logo_url and not self.logo_url.startswith('http'):
+            from app.services.s3_service import S3Service
+            try:
+                self.logo_url = S3Service.get_presigned_url(self.logo_url)
+            except Exception:
+                pass
+        return self
 
 
 class CompanyDetailResponse(CompanyResponse):
