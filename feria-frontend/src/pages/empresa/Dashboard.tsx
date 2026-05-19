@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, Receipt, QrCode,
-  Plus, Pencil, Loader2, AlertCircle, X,
+  Plus, Pencil, Loader2, AlertCircle, X, Menu,
   ToggleLeft, ToggleRight,
 } from 'lucide-react'
 import QRCode from 'qrcode'
@@ -37,6 +37,7 @@ export default function EmpresaDashboard() {
   const company = user ? getCompany(user.id) : null
 
   const [tab, setTab] = useState<Tab>('resumen')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
 
@@ -89,8 +90,16 @@ export default function EmpresaDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F5F4F2] dark:bg-[#111111] flex transition-colors">
+      {/* Backdrop en móviles */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 md:hidden z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-52 bg-[#0F0F0F] text-white flex flex-col fixed h-full shrink-0">
+      <aside className={`${sidebarOpen ? 'flex' : 'hidden'} md:flex w-52 bg-[#0F0F0F] text-white flex-col fixed h-full shrink-0 z-50`}>
         <div className="px-5 pt-6 pb-5 border-b border-gray-800">
           <Logo light />
           <p className="text-[10px] text-gray-600 mt-1.5 truncate">{company.name}</p>
@@ -131,14 +140,23 @@ export default function EmpresaDashboard() {
       </aside>
 
       {/* Content */}
-      <div className="flex-1 ml-52 flex flex-col min-h-screen">
+      <div className="flex-1 md:ml-52 flex flex-col min-h-screen">
         {/* Header */}
         <header className="sticky top-0 z-10 bg-white dark:bg-[#1A1A1A] border-b border-gray-100 dark:border-gray-800 px-8 py-3.5 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[10px] text-gray-400 uppercase tracking-widest">
-              Salón · {company.name}
-            </p>
-            <h1 className="text-lg font-bold leading-tight">{tabTitle[tab]}</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              aria-label="Menú"
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                Salón · {company.name}
+              </p>
+              <h1 className="text-lg font-bold leading-tight">{tabTitle[tab]}</h1>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 ml-auto">

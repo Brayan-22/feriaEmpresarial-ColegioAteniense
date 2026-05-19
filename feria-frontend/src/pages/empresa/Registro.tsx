@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Upload, Loader2 } from 'lucide-react'
+import { Upload, Loader2, Menu } from 'lucide-react'
 import Logo from '../../components/Logo'
 import { useAuthStore } from '../../store/authStore'
 import { useCompanyStore } from '../../store/companyStore'
@@ -31,6 +31,7 @@ export default function EmpresaRegistro() {
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [logoBase64, setLogoBase64] = useState<string | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -75,8 +76,16 @@ export default function EmpresaRegistro() {
 
   return (
     <div className="min-h-screen bg-[#F5F4F2] flex">
+      {/* Backdrop en móviles */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 md:hidden z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-[#0F0F0F] text-white flex flex-col px-7 py-8 shrink-0 fixed h-full">
+      <aside className={`${sidebarOpen ? 'flex' : 'hidden'} md:flex w-64 bg-[#0F0F0F] text-white flex-col px-7 py-8 shrink-0 fixed h-full md:z-auto z-50`}>
         <Logo light />
 
         <div className="flex-1 flex flex-col justify-end">
@@ -109,11 +118,20 @@ export default function EmpresaRegistro() {
       </aside>
 
       {/* Main */}
-      <div className="flex-1 ml-64 flex flex-col min-h-screen">
+      <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
         <header className="flex justify-between items-center px-10 py-5 bg-white border-b border-gray-100 sticky top-0 z-10">
-          <div>
-            <p className="text-[10px] text-gray-400 uppercase tracking-widest">Paso 1 de 4</p>
-            <h1 className="text-xl font-bold">Datos del salón</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Menú"
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest">Paso 1 de 4</p>
+              <h1 className="text-xl font-bold">Datos del salón</h1>
+            </div>
           </div>
           <span className="text-xs text-gray-400">autoguardado · hace 12s</span>
         </header>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Plus, Download, Loader2, X,
+  Plus, Download, Loader2, X, Menu,
   DollarSign, Building2, Users, ShoppingBag,
   Power, CheckCircle, RefreshCw, Info,
 } from 'lucide-react'
@@ -604,6 +604,7 @@ function ReportesTab() {
 export default function AdminPanel() {
   const navigate = useNavigate()
   const [activeNav, setActiveNav] = useState('Empresas')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
 
@@ -707,8 +708,16 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-[#F5F4F2] dark:bg-[#111111] flex transition-colors">
+      {/* Backdrop en móviles */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 md:hidden z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-56 bg-[#0F0F0F] text-white flex flex-col py-6 shrink-0 fixed h-full">
+      <aside className={`${sidebarOpen ? 'flex' : 'hidden'} md:flex w-56 bg-[#0F0F0F] text-white flex-col py-6 shrink-0 fixed h-full z-50`}>
         <div className="px-5 mb-8">
           <Logo light />
           <p className="text-[10px] text-gray-600 mt-1">Coordinación · 2026</p>
@@ -746,11 +755,20 @@ export default function AdminPanel() {
       </aside>
 
       {/* Main */}
-      <div className="flex-1 ml-56 flex flex-col min-h-screen">
+      <div className="flex-1 md:ml-56 flex flex-col min-h-screen">
         <header className="flex justify-between items-center px-8 py-4 bg-white dark:bg-[#1A1A1A] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
-          <div>
-            <p className="text-[10px] text-gray-400 uppercase tracking-widest">Coordinación · Feria 2026</p>
-            <h1 className="text-xl font-bold">{activeNav}</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              aria-label="Menú"
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest">Coordinación · Feria 2026</p>
+              <h1 className="text-xl font-bold">{activeNav}</h1>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
