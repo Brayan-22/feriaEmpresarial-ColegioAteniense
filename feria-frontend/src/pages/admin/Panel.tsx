@@ -169,6 +169,9 @@ function CreateCompanyModal({ onClose, onDone }: { onClose: () => void; onDone: 
               placeholder="Mín. 8 caracteres"
               className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#111111] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#7B1C2E] transition-colors"
             />
+            {password.length > 0 && password.length < 8 && (
+              <p className="text-xs text-red-500 mt-2">La contraseña debe tener mínimo 8 caracteres ({password.length}/8)</p>
+            )}
           </div>
         </div>
         <div className="flex gap-3">
