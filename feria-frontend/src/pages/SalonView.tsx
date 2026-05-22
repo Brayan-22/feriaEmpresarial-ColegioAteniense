@@ -268,7 +268,7 @@ export default function SalonView() {
           }
         }}
         onUpdateQty={handleUpdateModalQty}
-        isOutOfStock={selectedProduct?.stock === 0 ?? false}
+        isOutOfStock={selectedProduct?.stock === 0}
       />
     </div>
   )
